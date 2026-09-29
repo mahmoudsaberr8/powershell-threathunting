@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project documents **8 real-world PowerShell attack techniques** used by adversaries for execution, evasion, credential access, and persistence — and pairs each one with:
+This project documents **6 real-world PowerShell attack techniques** used by adversaries for execution, evasion, and credential access — and pairs each one with:
 
 - The exact **Windows Event IDs** it generates
 - A **detection strategy** a SOC/threat hunter would use to catch it
@@ -22,8 +22,6 @@ The hardening portion was built entirely on **Windows 10 Home**, which has no `g
 | 04 | AMSI Bypass | T1562.001 | 4104 | CLM blocks .NET reflection; Defender policy locked via registry |
 | 05 | Reverse Shell | T1059.001 / T1571 | 4688, 5156/5157 | CLM blocks `TCPClient`; firewall rules; process/connection auditing |
 | 06 | Credential Dumping (Invoke-Mimikatz / LSASS) | T1003.001 | 4656, 4663, 4776 | LSASS Protected Process Light (`RunAsPPL`) |
-| 07 | Persistence via Scheduled Tasks | T1053.005 | 4698 | Task creation auditing + `icacls` execute-deny on `schtasks.exe` |
-| 08 | Fileless Payload via Registry | T1547.001 / T1027 | 4657 | Registry auditing (Run/RunOnce ACLs) + `icacls` execute-deny on `reg.exe` |
 
 ## Repository Structure
 
@@ -31,19 +29,28 @@ The hardening portion was built entirely on **Windows 10 Home**, which has no `g
 ps-threat-hunting-lab/
 ├── README.md
 ├── LICENSE
-├── detections/
-│   ├── ps_attacks.md                      # Technique reference: what each attack does, IOCs, cheat sheet
-│   └── GPO_Hardening_Windows10_Home.md    # Full hardening walkthrough (registry-based GPO replacement)
-├── scripts/
-│   ├── harden.ps1                         # Full hardening script — applies all 8 mitigations
-│   └── verify.ps1                         # Verification script — confirms each control is active
 └── evidence/
-    ├── T01/ ... T08/
-    │   ├── before.png       # Attack succeeds
-    │   ├── fix_command.png  # Mitigation applied
-    │   ├── after.png        # Attack fails post-hardening
-    │   └── event_log.png    # Event Viewer showing the logged evidence
+    ├── T01-execution-policy-bypass/
+    │   ├── T01-execution-policy-bypass.md   # Attack description, mitigation, before/after, event log
+    │   └── (screenshots referenced in the md file)
+    ├── T02-base64-encoded-command/
+    │   ├── T02-base64-encoded-command.md
+    │   └── (screenshots)
+    ├── T03-download-cradle/
+    │   ├── T03-download-cradle.md
+    │   └── (screenshots)
+    ├── T04-amsi-bypass/
+    │   ├── T04-amsi-bypass.md
+    │   └── (screenshots)
+    ├── T05-reverse-shell/
+    │   ├── T05-reverse-shell.md
+    │   └── (screenshots)
+    └── T06-credential-dumping/
+        ├── T06-credential-dumping.md
+        └── (screenshots)
 ```
+
+Each technique folder is self-contained: the `.md` file documents the attack, the mitigation, and the verification steps, with its screenshots (before/after/event log) sitting alongside it in the same folder and linked inline.
 
 ## Why Windows 10 Home
 
@@ -68,11 +75,9 @@ Most GPO/AppLocker hardening guides assume Windows 10/11 Pro or Enterprise. Home
 
 ## Usage
 
-1. Review `detections/ps_attacks.md` to understand each attack technique.
-2. Follow `detections/GPO_Hardening_Windows10_Home.md` for the full walkthrough, or run `scripts/harden.ps1` (as Administrator, in an isolated lab VM) to apply all mitigations at once.
-3. Reboot (required for LSASS PPL and Constrained Language Mode to take effect).
-4. Run `scripts/verify.ps1` to confirm every control is active.
-5. Check `evidence/` for before/after proof and Event Viewer screenshots per technique.
+1. Open any `evidence/T0X-.../T0X-....md` file to read the full walkthrough for that technique: what the attack does, the exact commands, the registry/auditpol-based mitigation, and why it works.
+2. Screenshots in each folder show the attack succeeding before hardening, the fix command being applied, the attack failing after hardening, and the corresponding Event Viewer entry.
+3. To reproduce: apply the mitigation commands in an isolated lab VM (as Administrator), reboot where noted (required for LSASS PPL and Constrained Language Mode), then re-run the attack command to confirm it fails.
 
 ## References
 
